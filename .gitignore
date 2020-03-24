@@ -1,0 +1,11 @@
+#####################
+/TFramework/TFramework.csproj.user
+
+#####################
+/Library/
+.vs/
+/Temp/
+/packages/
+/TFramework/bin/
+/TFramework/obj/
+
