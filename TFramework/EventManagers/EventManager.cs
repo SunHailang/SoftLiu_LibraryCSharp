@@ -26,7 +26,11 @@ namespace TFramework.EventManager
         // We also use 3 different array pools (rather than just passing in m_reusableParams3Pool with 2 null arguments)
         // because some use-cases validate the length of the params.
         private readonly object[] m_reusableParam0 = new object[0];
-
+        /// <summary>
+        /// 注册事件
+        /// </summary>
+        /// <param name="eventType">事件名</param>
+        /// <param name="listener">监听函数</param>
         public void RegisterEvent(T eventType, Action<T, object[]> listener)
         {
             List<Action<T, object[]>> list;
@@ -44,7 +48,11 @@ namespace TFramework.EventManager
                 }
             }
         }
-
+        /// <summary>
+        /// 发送事件
+        /// </summary>
+        /// <param name="eventType">事件名</param>
+        /// <param name="optParams">参数</param>
         public void TriggerEvent(T eventType, params object[] optParams)
         {
             List<Action<T, object[]>> list;
@@ -64,7 +72,11 @@ namespace TFramework.EventManager
                 }
             }
         }
-
+        /// <summary>
+        /// 销毁事件
+        /// </summary>
+        /// <param name="eventType">事件名</param>
+        /// <param name="listener">监听函数</param>
         public void DeregisterEvent(T eventType, Action<T, object[]> listener)
         {
             List<Action<T, object[]>> list;
@@ -83,7 +95,10 @@ namespace TFramework.EventManager
                 }
             }
         }
-
+        /// <summary>
+        /// 获取所以的注册事件
+        /// </summary>
+        /// <returns></returns>
         public Dictionary<T, List<Action<T, object[]>>> GetRegisteredEvents()
         {
             return m_events;

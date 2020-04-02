@@ -7,10 +7,10 @@ using System;
 
 namespace TFramework.Utils
 {
-    public static class TimeUtils
+    public static class TimeUtils 
     {
         /// <summary>  
-        /// 获取时间戳  
+        /// 获取时间戳  指本地时间
         /// </summary>  
         /// <returns></returns>  
         public static string GetTimeStamp(DateTime dt)
@@ -19,7 +19,7 @@ namespace TFramework.Utils
             return Convert.ToInt64(ts.TotalSeconds).ToString();
         }
         /// <summary>
-        /// DateTime时间格式转换为Unix时间戳格式
+        /// DateTime时间格式转换为Unix时间戳格式 指本地时间
         /// </summary>
         /// <param name="time"> DateTime时间格式</param>
         /// <returns>Unix时间戳格式</returns>
@@ -28,9 +28,8 @@ namespace TFramework.Utils
             System.DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new System.DateTime(1970, 1, 1));
             return (long)(time - startTime).TotalSeconds;
         }
-
         /// <summary>
-        /// 时间戳转为C#格式时间
+        /// 时间戳转为C#格式时间 指本地时间
         /// </summary>
         /// <param name="timeStamp">Unix时间戳格式</param>
         /// <returns>C#格式时间</returns>

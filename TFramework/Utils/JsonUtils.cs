@@ -36,8 +36,6 @@ namespace TFramework.Utils
         {
             return m_jsonScript.Serialize(objData);
         }
-
-
         ~JsonUtils()
         {
             m_jsonScript = null;

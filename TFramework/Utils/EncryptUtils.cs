@@ -61,7 +61,12 @@ namespace TFramework.Utils
             }
             return sb.ToString();
         }
-
+        /// <summary>
+        /// 获取RSA的 私有、公有的秘钥
+        /// </summary>
+        /// <param name="savePath">秘钥保存路径</param>
+        /// <param name="keyName">密钥的名字</param>
+        /// <returns></returns>
         public static bool CreateRSAKey(string savePath, string keyName)
         {
             try
@@ -95,9 +100,7 @@ namespace TFramework.Utils
                 System.Console.WriteLine("CreateRSAPublicKey Error: " + error.Message);
                 return false;
             }
-
         }
-
         /// <summary>
         /// 加密数据
         /// </summary>
@@ -224,6 +227,5 @@ namespace TFramework.Utils
                 return null;
             }
         }
-
     }
 }

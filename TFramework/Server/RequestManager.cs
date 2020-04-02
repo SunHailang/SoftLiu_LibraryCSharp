@@ -34,7 +34,6 @@ namespace TFramework.Server
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             return response;
         }
-
         /// <summary>
         /// 获取"Content-disposition"的内的 name 的值
         /// </summary>
@@ -64,6 +63,5 @@ namespace TFramework.Server
             }
             return result;
         }
-
     }
 }
