@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace TFramework.Save
 {
-    class SaveData
+    public class SaveData
     {
+
     }
 }
