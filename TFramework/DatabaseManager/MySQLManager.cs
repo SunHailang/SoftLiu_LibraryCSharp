@@ -14,6 +14,11 @@ namespace TFramework.DatabaseManager
     {
         private string m_connectString = string.Empty;
 
+        public MySQLManager()
+        {
+
+        }
+
         /// <summary>
         /// 初始化 MySQL 的
         /// </summary>

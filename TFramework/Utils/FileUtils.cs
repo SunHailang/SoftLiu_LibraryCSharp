@@ -4,6 +4,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -109,6 +110,39 @@ namespace TFramework.Utils
                 }
             }
             return didDelete;
+        }
+
+        /// <summary>
+        /// 删除一个文件夹下的所有内容
+        /// </summary>
+        /// <param name="directory">文件夹路径</param>
+        /// <param name="self">是否包含自己， 默认：false</param>
+        public static void DeleteDirsAll(string directory, bool self = false)
+        {
+            try
+            {
+                if (!Directory.Exists(directory)) return;
+                DirectoryInfo dirInfo = new DirectoryInfo(directory);
+                foreach (DirectoryInfo info in dirInfo.GetDirectories())
+                {
+                    DeleteDirsAll(info.FullName, true);
+                }
+                foreach (FileInfo file in dirInfo.GetFiles())
+                {
+                    if (File.Exists(file.FullName))
+                    {
+                        File.Delete(file.FullName);
+                    }
+                }
+                if (self)
+                {
+                    Directory.Delete(directory);
+                }
+            }
+            catch (Exception error)
+            {
+                Console.WriteLine("DeleteDirs: " + directory + " Error: " + error.Message);
+            }
         }
     }
 }
