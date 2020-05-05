@@ -8,6 +8,19 @@ namespace TFramework.Save
 {
     public class SaveData
     {
+        private string m_savePath;
+
+        private byte[] m_saveData;
+
+        public SaveData(string path)
+        {
+            m_savePath = path;
+        }
+
+        private void LoadSava()
+        {
+
+        }
 
     }
 }

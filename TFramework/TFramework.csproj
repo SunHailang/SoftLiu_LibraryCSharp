@@ -48,7 +48,11 @@
     <Compile Include="DatabaseManager\MySQLManager.cs" />
     <Compile Include="EventManagers\EventManager.cs" />
     <Compile Include="Save\SaveData.cs" />
+    <Compile Include="Save\SaveFacade.cs" />
+    <Compile Include="Save\SaveSystem.cs" />
     <Compile Include="Server\RequestManager.cs" />
+    <Compile Include="TreeStruct\SaveTree.cs" />
+    <Compile Include="TreeStruct\Tree.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\JsonUtils.cs" />
@@ -59,7 +63,9 @@
     <Compile Include="Utils\ThreadPoolManager.cs" />
     <Compile Include="Utils\TimeUtils.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="3rdLibrary\MySql.Data.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
