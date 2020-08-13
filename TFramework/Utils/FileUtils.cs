@@ -18,6 +18,7 @@ namespace TFramework.Utils
         /// <param name="source">源文件夹</param>
         /// <param name="target">目标文件夹</param>
         /// <param name="child">是否包含子文件夹</param>
+        /// <param name="overwrite">是否重写， 默认不重写</param>
         /// <param name="withoutExtensions">不包含的 扩展名 ， eg: .meta </param>
         public static void CopyDirectoryFiles(DirectoryInfo source, DirectoryInfo target, bool child = false, bool overwrite = false, params string[] withoutExtensions)
         {
@@ -36,7 +37,12 @@ namespace TFramework.Utils
                     {
                         continue;
                     }
-                    file.CopyTo(Path.Combine(target.FullName, file.Name), overwrite);
+                    string newFilepath = Path.Combine(target.FullName, file.Name);
+                    if (!overwrite && File.Exists(newFilepath))
+                    {
+                        continue;
+                    }
+                    file.CopyTo(newFilepath, overwrite);
                 }
             }
             catch (Exception error)
@@ -83,33 +89,54 @@ namespace TFramework.Utils
                 Console.WriteLine("Get Directory Files Count Error: " + error.Message);
             }
         }
+
         /// <summary>
         /// 删除一个文件夹下的所有空文件夹
         /// </summary>
         /// <param name="directory">文件夹路径</param>
-        /// <returns></returns>
-        public static bool DeleteEmptyDirs(string directory)
+        /// <param name="self">是否包含自己， 默认不包含</param>
+        public static void DeleteEmptyDirs(string directory, bool self = false)
         {
-            bool didDelete = false;
-            string[] directoriesdirectories = Directory.GetDirectories(directory);
-            for (int i = 0; i < directoriesdirectories.Length; i++)
+            try
             {
-                string dir = directoriesdirectories[i];
-                int filecount = Directory.GetFiles(dir).Length + Directory.GetDirectories(dir).Length;
-                if (filecount > 0)
+                if (!Directory.Exists(directory))
                 {
-                    if (DeleteEmptyDirs(dir))
+                    return;
+                }
+                string[] directoriesdirectories = Directory.GetDirectories(directory);
+                if ((directoriesdirectories == null || directoriesdirectories.Length <= 0) && Directory.GetFiles(directory).Length <= 0)
+                {
+                    if (self)
                     {
-                        i--;
+                        Directory.Delete(directory);
+                    }
+                    return;
+                }
+                if (directoriesdirectories != null && directoriesdirectories.Length > 0)
+                {
+                    for (int i = directoriesdirectories.Length - 1; i >= 0; i--)
+                    {
+                        string dir = directoriesdirectories[i];
+                        int filecount = Directory.GetFiles(dir).Length + Directory.GetDirectories(dir).Length;
+                        if (filecount > 0)
+                        {
+                            DeleteEmptyDirs(dir, true);
+                        }
+                        else
+                        {
+                            if (Directory.Exists(dir))
+                            {
+                                Directory.Delete(dir);
+                            }
+                        }
                     }
                 }
-                else
-                {
-                    Directory.Delete(dir);
-                    didDelete = true;
-                }
             }
-            return didDelete;
+            catch (Exception error)
+            {
+                Console.WriteLine($"DeleteEmptyDirs Error: {error.Message}");
+            }
+
         }
 
         /// <summary>

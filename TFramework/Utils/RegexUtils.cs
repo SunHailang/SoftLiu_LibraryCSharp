@@ -9,7 +9,7 @@ namespace TFramework.Utils
     public static class RegexUtils
     {
         /// <summary>
-        /// 判断是否是地阿奴按号码
+        /// 判断是否是手机号码
         /// </summary>
         /// <param name="phoneNumber">要判断的字符串</param>
         /// <returns></returns>

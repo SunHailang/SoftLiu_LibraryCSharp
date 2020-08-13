@@ -17,8 +17,10 @@ namespace TFramework.Utils
         /// 获取一个 MD5 字符串
         /// </summary>
         /// <param name="key">字符串类型</param>
+        /// <param name="lowercase">大小写输出， 默认小写</param>
+        /// <param name="colon">是否包含 : 分隔符， 默认不包含</param>
         /// <returns></returns>
-        public static string GetMD5String(string key)
+        public static string GetMD5String(string key, bool lowercase = true, bool colon = false)
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -27,10 +29,12 @@ namespace TFramework.Utils
             MD5 md5 = MD5.Create();
             byte[] bts = md5.ComputeHash(Encoding.UTF8.GetBytes(key));
             StringBuilder sb = new StringBuilder();
+            string caseLetter = "x2";
+            if (!lowercase) caseLetter = "X2";
             for (int i = 0; i < bts.Length; i++)
             {
-                sb.Append(bts[i].ToString("X2"));
-                if (i < bts.Length - 1)
+                sb.Append(bts[i].ToString(caseLetter));
+                if (colon && (i < bts.Length - 1))
                 {
                     sb.Append(":");
                 }
