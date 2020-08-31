@@ -101,17 +101,27 @@ namespace TFramework.DatabaseManager
         /// <param name="tableName">表名</param>
         /// <param name="sqlData">插入的数据</param>
         /// <returns></returns>
-        public int InsesetData(string tableName, string sqlData)
+        public int InsesetData(string tableName, string sqlData, bool openAffairs = false)
         {
             if (string.IsNullOrEmpty(sqlData)) return 0;
+            StringBuilder sb = new StringBuilder();
+            if (openAffairs)
+            {
+                sb.Append("begin;");
+            }
             string query = string.Format("insert into {0} values({1});", tableName, sqlData);
+            sb.Append(query);
+            if (openAffairs)
+            {
+                sb.Append("commit;");
+            }
             int result = 0;
             using (MySqlConnection connection = new MySqlConnection(m_connectString))
             {
                 try
                 {
                     connection.Open();
-                    MySqlCommand mycmd1 = new MySqlCommand(query, connection);
+                    MySqlCommand mycmd1 = new MySqlCommand(sb.ToString(), connection);
                     result = mycmd1.ExecuteNonQuery();
                 }
                 catch (SqlException msg)
