@@ -3,6 +3,7 @@
     _time: 2020-03-23
  */
 
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +13,26 @@ namespace TFramework.Utils
 {
     public static class FileUtils
     {
+        /// <summary>
+        /// 获得项目的根路径
+        /// </summary>
+        /// <returns></returns>
+        public static string GetProjectRootPath()
+        {
+            // exe 运行文件夹目录
+            //string environmentPath = Environment.CurrentDirectory;
+            // 获取一个文件夹的父对象文件夹信息
+            //string parentPath = Directory.GetParent(environmentPath).Parent.FullName;
+
+            string rootPath = "";
+            string BaseDirectoryPath = AppDomain.CurrentDomain.BaseDirectory; // F:\project\WPF\AstroATE-PDR\04. 程序\01. 源代码\AstroATE\AstroATE\bin\Debug
+            // 向上回退三级，得到需要的目录
+            rootPath = BaseDirectoryPath.Substring(0, BaseDirectoryPath.LastIndexOf("\\")); // 第一个\是转义符，所以要写两个
+            rootPath = rootPath.Substring(0, rootPath.LastIndexOf(@"\"));   // 或者写成这种格式
+            rootPath = rootPath.Substring(0, rootPath.LastIndexOf("\\")); // @"F:\project\WPF\AstroATE-PDR\04. 程序\01. 源代码\AstroATE\AstroATE
+            return rootPath;
+        }
+
         /// <summary>
         /// 拷贝一个文件夹内容到另一个文件夹下， 并覆盖
         /// </summary>
@@ -50,6 +71,35 @@ namespace TFramework.Utils
                 Console.WriteLine("CopyFileRecursively Error: " + error.Message);
             }
         }
+
+        /// <summary>
+        /// 获取 一个文件夹下的所有文件  默认包含子文件夹
+        /// </summary>
+        /// <param name="dir">文件夹信息</param>
+        /// <param name="subfile">是否包含子文件夹  默认包含</param>
+        /// <returns></returns>
+        public static FileInfo[] GetDirectorAllFiles(string directory, bool subfile = true)
+        {
+            DirectoryInfo dir = new DirectoryInfo(directory);
+            if (dir == null)
+            {
+                return null;
+            }
+            List<FileInfo> fileList = new List<FileInfo>();
+            if (subfile)
+            {
+                foreach (DirectoryInfo item in dir.GetDirectories())
+                {
+                    fileList.AddRange(GetDirectorAllFiles(item.FullName, subfile));
+                }
+            }
+            foreach (FileInfo item in dir.GetFiles())
+            {
+                fileList.Add(item);
+            }
+            return fileList.ToArray<FileInfo>();
+        }
+
         /// <summary>
         /// 获取文件夹内文件的个数
         /// </summary>
@@ -169,6 +219,32 @@ namespace TFramework.Utils
             catch (Exception error)
             {
                 Console.WriteLine("DeleteDirs: " + directory + " Error: " + error.Message);
+            }
+        }
+
+        /// <summary>
+        /// 设置开机自启动
+        /// </summary>
+        /// <param name="appName">名字</param>
+        /// <param name="appPath">程序的路径</param>
+        /// <param name="isCurrentUser">是否设置为当前用户</param>
+        private static void AddStartSoft(string appName, string appPath, bool isCurrentUser = false)
+        {
+            if (isCurrentUser)
+            {
+                RegistryKey rKey = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run");
+                if (rKey.GetValue(appName) == null)
+                {
+                    rKey.SetValue(appName, appPath);
+                }
+            }
+            else
+            {
+                RegistryKey rKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run");
+                if (rKey.GetValue(appName) == null)
+                {
+                    rKey.SetValue(appName, appPath);
+                }
             }
         }
     }
