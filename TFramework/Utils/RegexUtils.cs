@@ -24,8 +24,8 @@ namespace TFramework.Utils
         /// <returns></returns>
         public static bool IPCheck(string str_IP)
         {
-            string num = "(25[0-5]|2[0-4]//d|[0-1]//d{2}|[1-9]?//d)";
-            return Regex.IsMatch(str_IP, ("^" + num + "//." + num + "//." + num + "//." + num + "$"));
+            string num = @"^((2[0-4]\d|25[0-5]|[01]?\d\d?)\.){3}(2[0-4]\d|25[0-5]|[01]?\d\d?)$";
+            return Regex.IsMatch(str_IP, num);
         }
         /// <summary>
         /// 判断是否是电子邮箱

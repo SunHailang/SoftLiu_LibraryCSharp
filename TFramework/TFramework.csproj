@@ -59,6 +59,7 @@
     <Compile Include="TreeStruct\SaveTree.cs" />
     <Compile Include="TreeStruct\Tree.cs" />
     <Compile Include="Utils\ConfigurationUtils.cs" />
+    <Compile Include="Utils\DataUtils.cs" />
     <Compile Include="Utils\ExcelUtils.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
