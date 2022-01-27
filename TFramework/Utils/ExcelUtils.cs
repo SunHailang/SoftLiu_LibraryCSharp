@@ -1,16 +1,27 @@
-﻿using System;
+﻿using OfficeOpenXml;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TFramework.Utils
 {
     public class ExcelUtils
     {
+        class ExcelFieldItem
+        {
+            public enum EFieldType
+            {
+                INT,
+                STRING,
+            }
+            public string fieldName;
+            public EFieldType baseType;
+            public int arraySize;
+            public bool PrimaryKey;
+        }
 
         public static DataTable ReadExcelToDataTable(string path, string sheet)
         {
@@ -40,92 +51,156 @@ namespace TFramework.Utils
 
         public static void WriteDataTableToExcel(DataTable dataTable, string path, string sheetName, string password = "")
         {
-            if (dataTable != null)
+
+        }
+
+        // T 类型
+
+        [Config.TargetExcel("excel_name", sheet = "sheet_name")]
+        class DataT
+        {
+            //Tips提示信息， Config.MarkAsID 主键
+            [Config.Tips("编号"), Config.MarkAsID]
+            public int id;
+        }
+
+        public static void WriteExcel<T>(List<T> dataList, string path)
+        {
+            if (string.IsNullOrEmpty(path) || dataList == null ||dataList.Count <= 0)
             {
-                try
+                return;
+            }
+
+            Type dataType = typeof(T);
+            var excelAttrs = (Config.TargetExcel[])dataType.GetCustomAttributes(typeof(Config.TargetExcel), false);
+            if(excelAttrs.Length <= 0)
+            {
+                return;
+            }
+            string excelName = excelAttrs[0].excel;
+            string sheetName = excelAttrs[0].sheet;
+
+            string filePath = $"{path}/{excelName}.xlsx";
+            if(!File.Exists(filePath))
+            {
+                File.Create(filePath);
+            }
+            bool containArray = false;
+            // 分析字段和属性
+            System.Reflection.FieldInfo[] dataFieldList = dataType.GetFields(System.Reflection.BindingFlags.Public);
+            var fieldItems = new List<ExcelFieldItem>();
+            for (int i = 0; i < dataFieldList.Length; i++)
+            {
+                ExcelFieldItem item = new ExcelFieldItem();
+                var fieldInfo = dataFieldList[i];
+                item.fieldName = fieldInfo.Name;
+                var capacities = (Config.Capacity[])fieldInfo.GetCustomAttributes(typeof(Config.Capacity), false);
+                if (capacities.Length > 0)
                 {
-                    //此连接只能操作Excel2007之前(.xls)文件
-                    //string connstring = "Provider=Microsoft.Jet.OLEDB.4.0;" + "Data Source=" + path + ";" + "Extended Properties=Excel 8.0;";
-                    //此连接可以操作.xls与.xlsx文件
-                    string connstring = "Provider=Microsoft.Ace.OleDb.12.0;" + "data source=" + path + ";Extended Properties='Excel 12.0; HDR=NO; IMEX=1'";
+                    containArray = true;
+                    item.arraySize = capacities[0].capacity;
+                    item.baseType = (fieldInfo.FieldType.GetElementType() == typeof(int)) ? ExcelFieldItem.EFieldType.INT : ExcelFieldItem.EFieldType.STRING;
+                }
+                else
+                {
+                    item.baseType = (fieldInfo.FieldType == typeof(int)) ? ExcelFieldItem.EFieldType.INT : ExcelFieldItem.EFieldType.STRING;
+                }
 
-                    Microsoft.Office.Interop.Excel.Application excelApp = new Microsoft.Office.Interop.Excel.Application();
-                    excelApp.Visible = true;
-                    //Microsoft.Office.Interop.Excel.Application excelApp;
-                    Microsoft.Office.Interop.Excel._Workbook workBook;
-                    Microsoft.Office.Interop.Excel._Worksheet workSheet = null;
-                    object misValue = System.Reflection.Missing.Value;
-                    if (File.Exists(path))
-                    {
-                        workBook = excelApp.Workbooks.Open(path, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue, misValue);
-                        //Console.WriteLine("Sheets Count : " + workBook.Sheets.Count);
-                        for (int i = 0; i < workBook.Sheets.Count; i++)
-                        {
-                            Microsoft.Office.Interop.Excel._Worksheet work = (Microsoft.Office.Interop.Excel._Worksheet)workBook.Sheets.get_Item(i + 1);
-                            if (work.Name == sheetName)
-                            {
-                                workSheet = work;
-                                break;
-                            }
-                            //Console.WriteLine(work.Name);
-                        }
-                        if (workSheet == null)
-                        {
-                            Console.WriteLine("Not Find Sheet : " + sheetName);
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        workBook = excelApp.Workbooks.Add(misValue);//加载模型
-                        workSheet = (Microsoft.Office.Interop.Excel._Worksheet)workBook.Sheets.get_Item(1);//第一个工作薄。
-                    }
+                var markAsIds = (Config.MarkAsID[])fieldInfo.GetCustomAttributes(typeof(Config.MarkAsID), false);
+                if (markAsIds.Length > 0)
+                {
+                    item.PrimaryKey = true;
+                }
 
-                    //using (OleDbConnection conn = new OleDbConnection(connstring))
-                    //{
-                    //    conn.Open();
-                    //    DataTable sheetsName = conn.GetOleDbSchemaTable(OleDbSchemaGuid.Tables, new object[] { null, null, null, "Table" }); //得到所有sheet的名字
+                fieldItems.Add(item);
+            }
+            FileInfo file = new FileInfo(filePath);
+            if (file == null)
+            {
+                return;
+            }
 
-                    //    //string firstSheetName = sheetsName.Rows[0][2].ToString(); //得到第一个sheet的名字
-                    //}
-                    //workSheet = (Microsoft.Office.Interop.Excel._Worksheet)workBook.Sheets[sheet];
-
-                    int rowIndex = 0;
-                    int colIndex = 0;
-                    foreach (DataRow row in dataTable.Rows)
-                    {
-                        rowIndex++;
-                        colIndex = 0;
-                        foreach (DataColumn col in dataTable.Columns)
-                        {
-                            colIndex++;
-                            workSheet.Cells[rowIndex, colIndex] = row[col.ColumnName].ToString().Trim();
-                        }
-                    }
-
-
-                    workSheet.Protect(password, Type.Missing, Type.Missing, Type.Missing,
-                                                Type.Missing, Type.Missing, Type.Missing, Type.Missing,
-                                                Type.Missing, Type.Missing, Type.Missing, Type.Missing,
-                                                Type.Missing, true, Type.Missing, Type.Missing);
-
-
-                    excelApp.DisplayAlerts = false;
-
-                    workBook.SaveAs(path, Type.Missing, "", "", Type.Missing, Type.Missing, Microsoft.Office.Interop.Excel.XlSaveAsAccessMode.xlNoChange, 1, false, Type.Missing, Type.Missing, Type.Missing);
-                    //xbook.Save();
-                    workBook.Close(false, misValue, misValue);
-                    dataTable = null;
-
-                    excelApp.Quit();
-
-                    //PublicMethod.Kill(excelApp);//调用kill当前excel进程  
+            try
+            {
+                using (var pkg = new ExcelPackage(file))
+                {
+                    ExcelWorksheet ws = pkg.Workbook.Worksheets[1];
                     
+                    // var cells = ws.Cells;
+                    int maxColumnNum = ws.Dimension.End.Column;
+                    int minRowNum = containArray ? 7 : 5;
+                    int maxRowNum = ws.Dimension.End.Row; //工作区结束行号
+                                                          //开始写入数据
+
+                    for (int i = 0; i < dataList.Count; i++)
+                    {
+                        int column = 1;
+                        T dataItem = dataList[i];
+                        for (int j = 0; j < dataFieldList.Length; j++)
+                        {
+                            //如果是数组
+                            if (fieldItems[j].arraySize > 0)
+                            {
+                                if (fieldItems[j].baseType == ExcelFieldItem.EFieldType.INT)
+                                {
+                                    int[] arrObjValue = (int[])dataFieldList[j].GetValue(dataItem);
+                                    for (int k = 0; k < fieldItems[j].arraySize; k++)
+                                    {
+                                        ws.Cells[minRowNum + i, column].Value = arrObjValue[k];
+                                        column++;
+                                    }
+                                }
+                                else
+                                {
+                                    string[] arrObjValue = (string[])dataFieldList[j].GetValue(dataItem);
+                                    for (int k = 0; k < fieldItems[j].arraySize; k++)
+                                    {
+                                        ws.Cells[minRowNum + i, column].Value = arrObjValue[k];
+                                        column++;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                object objValue = dataFieldList[j].GetValue(dataItem);
+                                if (objValue != null)
+                                {
+                                    if (fieldItems[j].baseType == ExcelFieldItem.EFieldType.INT)
+                                    {
+                                        ws.Cells[minRowNum + i, column].Value = objValue;
+                                    }
+                                    else
+                                    {
+                                        ws.Cells[minRowNum + i, column].Value = objValue.ToString();
+                                    }
+                                }
+                                column++;
+                            }
+                            // 
+                        }
+                    }
+
+                    if (1 + maxRowNum - minRowNum > dataList.Count)
+                    {
+                        for (int i = 0; i < 1 + maxRowNum - minRowNum - dataList.Count; i++)
+                        {
+                            for (int j = 1; j <= maxColumnNum; j++)
+                            {
+                                ws.Cells[minRowNum + dataList.Count + i, j].Value = null;
+                            }
+
+                        }
+                    }
+                    pkg.Save();
                 }
-                catch (Exception msg)
-                {
-                    Console.WriteLine("Write Sheet Error: " + msg.Message);
-                }
+            }
+            catch (Exception e)
+            {
+                
+            }
+            finally
+            {
+                // fs.Close();
             }
         }
 
