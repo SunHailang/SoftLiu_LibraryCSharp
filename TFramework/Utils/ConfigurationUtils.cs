@@ -19,22 +19,17 @@ namespace TFramework.Utils
             RemoveItemType,
         }
 
+        private Configuration configuration = null;
+
         /// <summary>
         /// 获取当前 App.config 中 appSetting 的 key—value 值
         /// </summary>
-        private NameValueCollection m_appSetting = null;
-
-        private ConnectionStringSettingsCollection m_connectionSetting = null;
+        private AppSettingsSection m_appSetting = null;
 
         public ConfigurationUtils()
         {
-            Update();
-        }
-
-        private void Update()
-        {
-            m_appSetting = ConfigurationManager.AppSettings;
-            m_connectionSetting = ConfigurationManager.ConnectionStrings;
+            configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            m_appSetting = configuration.AppSettings;
         }
 
         /// <summary>
@@ -42,13 +37,19 @@ namespace TFramework.Utils
         /// </summary>
         /// <param name="key">key 值</param>
         /// <returns></returns>
-        public string GetAppSettingValue(string key)
+        public string GetAppSettingValue(string key, string defaultValue)
         {
             try
             {
                 if (m_appSetting != null)
                 {
-                    return m_appSetting[key] ?? null;
+                    string value = m_appSetting.Settings[key].Value ?? null;
+                    if (value == null)
+                    {
+                        // add key
+                        value = AddKey(key, defaultValue);
+                    }
+                    return value;
                 }
             }
             catch (Exception e)
@@ -56,7 +57,7 @@ namespace TFramework.Utils
                 Console.WriteLine(string.Format("GetAppSettingValue Error : {0} , key:{1}", e.Message, key));
             }
 
-            return null;
+            return "";
         }
 
         /// <summary>
@@ -64,12 +65,13 @@ namespace TFramework.Utils
         /// </summary>
         /// <param name="keyName">key 值</param>
         /// <param name="keyValue">value 值</param>
-        public void Additem(string keyName, string keyValue)
+        public string AddKey(string keyName, string defaultValue)
         {
             if (!ExistItem(keyName))
             {
-                AppConfigItem(AppConfigOperation.AddItemType, keyName, keyValue);
+                m_appSetting.Settings.Add(new KeyValueConfigurationElement(keyName, defaultValue));
             }
+            return defaultValue;
         }
 
         /// <summary>
@@ -77,9 +79,9 @@ namespace TFramework.Utils
         /// </summary>
         /// <param name="keyName">key 值</param>
         /// <returns>true 存在， false 不存在</returns>
-        public bool ExistItem(string keyName)
+        private bool ExistItem(string keyName)
         {
-            foreach (string key in m_appSetting)
+            foreach (string key in m_appSetting.Settings.AllKeys)
             {
                 if (key == keyName)
                 {
@@ -94,11 +96,11 @@ namespace TFramework.Utils
         /// </summary>
         /// <param name="keyName">key 值</param>
         /// <param name="newKeyValue">value 值</param>
-        public void ModifyItem(string keyName, string keyValue)
+        public void UpdateKeyValue(string keyName, string keyValue)
         {
             if (ExistItem(keyName))
             {
-                AppConfigItem(AppConfigOperation.ModifyItemType, keyName, keyValue);
+                m_appSetting.Settings[keyName].Value = keyValue;
             }
         }
 
@@ -106,109 +108,18 @@ namespace TFramework.Utils
         /// 删除配置文件键为keyName的项
         /// </summary>
         /// <param name="keyName">key 值</param>
-        public void removeItem(string keyName)
+        public void RemoveKey(string keyName)
         {
             if (ExistItem(keyName))
             {
-                AppConfigItem(AppConfigOperation.RemoveItemType, keyName);
-            }
-        }
-
-        /// <summary>
-        /// 获取当前 App.config 中 connectionSetting 的 key—value 值
-        /// </summary>
-        /// <param name="name">name 值</param>
-        /// <returns></returns>
-        public string GetConnectionSettingValue(string name)
-        {
-            try
-            {
-                if (m_connectionSetting != null)
-                {
-                    return m_connectionSetting[name].ConnectionString;
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(string.Format("GetConnectionSettingValue Error : {0} , key:{1}", e.Message, name));
-            }
-
-            return null;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="keyName"></param>
-        /// <param name="keyValue"></param>
-        private void AppConfigItem(AppConfigOperation type, string keyName, string keyValue = "")
-        {
-            try
-            {
-                XmlDocument xDoc = new XmlDocument();
-                //获取App.config文件绝对路径
-                string basePath = FileUtils.GetProjectRootPath();
-                //basePath = basePath.Substring(, basePath.Length - );
-                string path = basePath + @"\App.config";
-                xDoc.Load(path);
-
-                XmlNode xNode;
-                XmlElement xElem1;
-                XmlElement xElem2;
-                //修改完文件内容，还需要修改缓存里面的配置内容，使得刚修改完即可用
-                //如果不修改缓存，需要等到关闭程序，在启动，才可使用修改后的配置信息
-                Configuration cfa = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                xNode = xDoc.SelectSingleNode("//appSettings");
-                xElem1 = (XmlElement)xNode.SelectSingleNode("//add[@key='" + keyName + "']");
-                switch (type)
-                {
-                    case AppConfigOperation.AddItemType:
-                        if (xElem1 == null)
-                        {
-                            xElem2 = xDoc.CreateElement("add");
-                            xElem2.SetAttribute("key", keyName);
-                            xElem2.SetAttribute("value", keyValue);
-                            xNode.AppendChild(xElem2);
-                            cfa.AppSettings.Settings.Add(keyName, keyValue);
-                        }
-                        break;
-                    case AppConfigOperation.ModifyItemType:
-                        if (xElem1 != null)
-                        {
-                            xElem1.SetAttribute("value", keyValue);
-                            cfa.AppSettings.Settings[keyName].Value = keyValue;
-                        }
-                        break;
-                    case AppConfigOperation.RemoveItemType:
-                        if (xElem1 != null)
-                        {
-                            xNode.RemoveChild(xElem1);
-                        }
-                        break;
-                }
-                //改变缓存中的配置文件信息（读取出来才会是最新的配置）
-                cfa.Save();
-                ConfigurationManager.RefreshSection("appSettings");
-
-                xDoc.Save(path);
-            }
-            catch (Exception e)
-            {
-                string error = e.Message;
-                Console.WriteLine(type.ToString() + " AppConfigItem Error : " + error);
+                m_appSetting.Settings.Remove(keyName);
             }
         }
 
         ~ConfigurationUtils()
         {
-            if (m_appSetting != null)
-            {
-                m_appSetting = null;
-            }
-            if (m_connectionSetting != null)
-            {
-                m_connectionSetting = null;
-            }
+            configuration = null;
+            m_appSetting = null;
         }
     }
 }

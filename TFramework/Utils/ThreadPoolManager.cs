@@ -53,7 +53,6 @@ namespace TFramework.Utils
         /// </summary>
         public void Init()
         {
-
             ThreadPool.SetMaxThreads(10, 10);
             ThreadPool.SetMinThreads(2, 2);
         }
