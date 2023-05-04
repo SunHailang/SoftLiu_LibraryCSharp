@@ -59,6 +59,7 @@
     <Compile Include="Save\SaveFacade.cs" />
     <Compile Include="Save\SaveSystem.cs" />
     <Compile Include="Server\RequestManager.cs" />
+    <Compile Include="TreeStruct\QuadTree.cs" />
     <Compile Include="TreeStruct\SaveTree.cs" />
     <Compile Include="TreeStruct\Tree.cs" />
     <Compile Include="Utils\ConfigurationUtils.cs" />
