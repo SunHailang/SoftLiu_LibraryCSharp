@@ -9,7 +9,7 @@ namespace TFramework.Utils
     public static class StringToHashUtils
     {
 
-        public static int GetHashValue(string str)
+        public static int ToHashValue(this string str)
         {
             if (string.IsNullOrEmpty(str)) return 0;
             int value = 0;
@@ -18,6 +18,11 @@ namespace TFramework.Utils
                 value = 31 * value + str[i];
             }
             return value;
+        }
+
+        public static int GetHashValue(string str)
+        {
+            return str.ToHashValue();
         }
 
     }
