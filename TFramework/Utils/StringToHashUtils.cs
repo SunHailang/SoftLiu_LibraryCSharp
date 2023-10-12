@@ -9,7 +9,7 @@ namespace TFramework.Utils
     public static class StringToHashUtils
     {
 
-        public static int ToHashValue(this string str)
+        public static int GetHashValue(string str)
         {
             if (string.IsNullOrEmpty(str)) return 0;
             int value = 0;
@@ -20,9 +20,9 @@ namespace TFramework.Utils
             return value;
         }
 
-        public static int GetHashValue(string str)
+        public static void TestHello()
         {
-            return str.ToHashValue();
+
         }
 
     }
